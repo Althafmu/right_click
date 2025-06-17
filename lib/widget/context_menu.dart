@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:right_click/widget/context_menu_interceptor.dart';
 
 class ContextMenu extends StatefulWidget {
@@ -96,12 +97,29 @@ class _ContextMenuState extends State<ContextMenu> {
     super.dispose();
   }
 
+  // Determine if the device is considered "mobile" (small screen or touch-based)
+  bool _isMobile(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Consider mobile if screen width is less than 600 (common breakpoint for tablets)
+    // or if the platform is typically touch-based
+    return screenWidth < 600 ||
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Interceptor(
       child: GestureDetector(
+        // Handle right-click for desktop platforms (web and native)
         onSecondaryTapDown: (details) {
           _showContextMenu(context, details.globalPosition);
+        },
+        // Handle tap for mobile platforms (web and native)
+        onTapDown: (details) {
+          if (_isMobile(context)) {
+            _showContextMenu(context, details.globalPosition);
+          }
         },
         child: Container(key: _childKey, child: widget.child),
       ),
